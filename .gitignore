@@ -1,0 +1,6 @@
+# TF files ignore to commit
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+.terraform/
+variables.tf
