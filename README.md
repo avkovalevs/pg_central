@@ -1,12 +1,12 @@
-# Deploy two nodes PG cluster on Hetzner
+# How to run a two-nodes PG cluster on Hetzner?
 
-This project will describes steps needed deploy at Hetzner Cloud a PG cluster using Terraform and Ansible code
+This project will describe steps needed to deploy at Hetzner Cloud a PG cluster using Terraform and Ansible code
 ## Software requirements
 PostgreSQL 12, repmgr 5.2.1, Ansible 2.9.16, Terraform 1.0.2, Ubuntu 18.04 LTS 
 
 ## Pre-requisites
 - Hetzner account
-- Generated API Token
+- Generated API Token (with read and write permissions)
 - Generated Public key 
 
 ## Usage
@@ -23,14 +23,20 @@ cd terraform
 export HCLOUD_TOKEN="insert api token here"
 ~~~
 
-3. Add public key to variable.tf. These variables must be changed: ssh_key_name and ssh_public_key 
-4. Run the terraform commands below to initialize the configuration:
+3. Add public key to variables.tf. These variables must be changed on your values: ssh_key_name and ssh_public_key 
+4. Run the terraform commands below to initialize and check the configuration:
 ~~~
 terraform init
 terraform plan
 ~~~
 5. Apply the configuration using command below:
 ~~~
+terraform apply
+~~~
+6. If the deployment process is finished successfully the output will show the public addresses of PG nodes.
+In another case, there a way to fix the errors and recreate infrastructure again using the following commands:
+~~~
+terraform destroy
 terraform apply
 ~~~
 
