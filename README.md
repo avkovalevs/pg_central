@@ -8,6 +8,7 @@ PostgreSQL 12, repmgr 5.2.1, Ansible 2.9.16, Terraform 1.0.2, Ubuntu 18.04 LTS
 - Hetzner account
 - Generated API Token (with read and write permissions)
 - Generated Public key 
+- Terraform and ansible installed
 
 ## Usage
 ### Deployment of infrastructure (provisioning) using terraform.
@@ -41,4 +42,10 @@ terraform apply
 ~~~
 
 ### Software deployment using Ansible
-These steps will cover installation and tuning PG software, setup common steps for nodes.
+These steps will cover installation and tuning steps for PG software, set up common steps for nodes, and so on.
+Before the installation needs to install ansible software locally on the same node as the terraform. This node will an ansible master.
+Nodes created on previous steps are called managed nodes. 
+1. Install ansiible software on master node (once)
+2. Check access from master to managed nodes (each time after provisioning)
+3. Setup inventory and check variables (each time after provisioning)
+4. Run playbook to deploy software stack (any times)
