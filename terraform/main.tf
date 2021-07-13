@@ -52,7 +52,7 @@ resource "hcloud_volume" "pgdatavol0" {
 
 resource "hcloud_volume_attachment" "main" {
   count     = "2"
-  volume_id = "${hcloud_volume.pgdatavol0.pgdata-$${count.index}.id}"
-  server_id = "${hcloud_server.pg.pgnode-$${count.index}.id}"
+  volume_id = "${hcloud_volume.pgdatavol0[count.index].id}"
+  server_id = "${hcloud_server.pg[count.index].id}"
   automount = true
 }
