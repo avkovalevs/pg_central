@@ -45,7 +45,31 @@ terraform apply
 These steps will cover installation and tuning steps for PG software, set up common steps for nodes, and so on.
 Before the installation needs to install ansible software locally on the same node as the terraform. This node will an ansible master.
 Nodes created on previous steps are called managed nodes. 
-1. Install ansiible software on master node (once)
-2. Check access from master to managed nodes (each time after provisioning)
-3. Setup inventory and check variables (each time after provisioning)
-4. Run playbook to deploy software stack (any times)
+1. Install ansible software on master node (once). Use this commands below for Ubuntu machine only.
+~~~
+$ sudo apt-add-repository ppa:ansible/ansible
+$ sudo apt install software-properties-common -y
+$ sudo apt update
+$ sudo apt install ansible -y
+$ sudo apt install python-psycopg2 -y
+$ sudo apt install python-netaddr -y
+~~~
+2. Check access from ansible master node to managed nodes (each time after provisioning)
+~~~
+$ ssh root@use_public_ip_from_terraform_output_here
+~~~
+3. Add public key to root user on master node using command below (once):
+~~~
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@127.0.0.1
+~~~
+4. Setup inventory and check variables (each time after provisioning). For the inventory setup it is required to edit hosts file in the dev, test or prod catalogs depend on enviroment you will use.
+5. Run the playbook to deploy software stack (any times)
+~~~
+$ ansible-playbook -v -i test master.yml --extra-vars "env_state=present" -t common
+~~~
+"-v" - verbose mode enabled
+"-i test" - show the inventory file using for playing 
+"master.yml" - the main file with tasks and roles
+"--extra-vars" - additional parameter like "env_state=present" 
+"-t common" - use tag "common". Ansible master will play only tasks which has tags common. 
+This is usefull parameter if no need to play all the roles, all the tasks each times. 
