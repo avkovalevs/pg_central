@@ -7,5 +7,8 @@
     - name: Display all hostnames 
       debug:
         msg: "The hostname is {{ ansible_hostname }} and the OS is {{ ansible_os_family }}"
+
+- name: "Tuning db nodes"
+  hosts: db
   roles:
     - common
