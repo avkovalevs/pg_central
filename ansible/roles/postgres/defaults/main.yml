@@ -1,2 +1,13 @@
 ---
 # defaults file for postgres
+pghome: /var/lib/postgresql
+pgdata: /var/lib/postgresql/9.6/main
+pgbin: /usr/lib/postgresql/9.6/bin
+pgconf: /etc/postgresql/9.6/main
+pguser: postgres
+pggroup: postgres
+pgsql_cluster_master: false
+pgsql_cluster: true
+pgsql_cluster_name: cluster
+pgsql_replication_provider: repmgr
+pgsql_cluster_group_name: db

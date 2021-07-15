@@ -55,3 +55,18 @@
     opts: rw,nosuid,noexec
     state: mounted
   tags: common
+
+- name: "Install system packages"
+  apt:
+    name: "{{ packages }}"
+    force_apt_get: true
+  vars:
+    packages:
+    - nmap
+    - curl
+    - wget
+    - nmon
+    - strace
+    - ca-certificates
+  tags: common
+
