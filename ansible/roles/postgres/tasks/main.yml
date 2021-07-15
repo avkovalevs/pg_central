@@ -43,13 +43,13 @@
     filename: 'pgdg'
   tags: db
 
-- name: "Add an Apt signing key"
+- name: "Add an apt signing key"
   apt_key:
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     state: present
   tags: db
 
-# The passwordless access between postgres users need
+# The passwordless access between nodes is required for postgres user (system account)
 - name: cross-authorize private SSH key access from this VM to other VMs
   copy:
      src: /home/ubuntu/.ssh/id_rsa
@@ -85,9 +85,8 @@
     path: /etc/environment
     line: "export LC_ALL=en_US.UTF-8"
     create: yes
-  become: yes
-  become_user: root
-  
+  tags: pg
+   
 - name: "Install postgres, repmgr & python packages for ansible modules"
   apt:
     name: "{{ repmgr_packages }}"
@@ -95,14 +94,13 @@
     force_apt_get: true
   vars:
     repmgr_packages:
-    - postgresql-12
-    - postgresql-client-9.6
-    - postgresql-contrib-9.6
-    - postgresql-9.6-repmgr
+    - postgresql-{{ pgversion }}
+    - postgresql-client-{{ pgversion }}
+    - postgresql-contrib-{{ pgversion }}
+    - postgresql-{{ pgversion }}-repmgr
     - libevent-dev
     - python-psycopg2
-  become: true
-  become_user: root
+  tags: pg
      
 - name: "Create SSH keys for the Postgres user and put it into this role's files directory"
   shell: ssh-keygen -f "{{role_path}}/files/postgres_user_id_rsa" -t rsa -N ''
@@ -124,7 +122,7 @@
 
 - name: "Change group and permissions for id_rsa.pub"
   file:
-    path: "{{role_path}}/files/postgres_user_id_rsa.pub" 
+    path: "{{ role_path }}/files/postgres_user_id_rsa.pub" 
     owner: ubuntu 
     group: ubuntu
   become: true
@@ -182,13 +180,13 @@
     group: "{{ pggroup }}"
     mode: 0400
     block: |
-      export PATH=$PATH:/usr/sbin:/usr/lib/postgresql/9.6/bin
-      export PGDATA=/var/lib/postgresql/9.6/main
+      export PATH=$PATH:/usr/sbin:/usr/lib/postgresql/{{ pgversion }}/bin
+      export PGDATA=/var/lib/postgresql/{{ pgversion }}/main
       export PGPORT=5432
-      export PGCLUSTER=9.6/main
-      alias pgstop='pg_ctl -D /etc/postgresql/9.6/main --log=/var/log/postgresql/posgresql-9.6-main.log stop'
-      alias pgstart='pg_ctl -D /etc/postgresql/9.6/main --log=/var/log/postgresql/posgresql-9.6-main.log start'
-      alias pglog='tail -100f /var/log/postgresql/postgresql-9.6-main.log'
+      export PGCLUSTER={{ pgversion }}/main
+      alias pgstop='pg_ctl -D /etc/postgresql/{{ pgversion }}/main --log=/var/log/postgresql/posgresql-{{ pgversion }}-main.log stop'
+      alias pgstart='pg_ctl -D /etc/postgresql/{{ pgversion }}/main --log=/var/log/postgresql/posgresql-{{ pgversion }}-main.log start'
+      alias pglog='tail -100f /var/log/postgresql/postgresql-{{ pgversion }}-main.log'
     state: present
   become: true
   become_user: root 
@@ -214,15 +212,13 @@
     mode: 0644
     line: "[ -f /var/lib/postgresql/.pgsql_profile ] && source /var/lib/postgresql/.pgsql_profile"
     state: present
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Disable autorestart service postgres to prevent splitbain after the failover"
   systemd: 
-    name: postgresql@9.6-main.service 
+    name: postgresql@{{ pgversion }}-main.service 
     enabled: no
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Change startup option for PG cluster"
   lineinfile:
@@ -233,10 +229,9 @@
     state: present
   with_items:
     - { regexp: '^auto', line: 'manual' }
-  become: true
-  become_user: root
+  tags: pg
 
-- name: "Add pgpooler user to .pgpass for authentication"
+- name: "Add pgpooler and repmgr users to .pgpass for authentication"
   blockinfile:
     path: "{{ pghome }}/.pgpass"
     block: |
@@ -247,6 +242,7 @@
     mode: 0600
   become: true
   become_user: "{{ pguser }}" 
+  tags: pg
 
 - name: "Add nofile soft limit for the user postgres"
   pam_limits:
@@ -254,8 +250,7 @@
     limit_type: soft
     limit_item: nofile
     value: 4096
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Add nofile hard limit for the user postgres"
   pam_limits:
@@ -263,8 +258,7 @@
     limit_type: hard
     limit_item: nofile
     value: 16384
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Add postgres user to sudoers"
   lineinfile:
@@ -272,19 +266,17 @@
     state: present
     line: 'postgres ALL=(ALL) NOPASSWD: ALL'
     validate: '/usr/sbin/visudo -cf %s'
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "The copy repmgr.conf"
   copy:
-    src: "{{role_path}}/files/repmgr.conf"
+    src: "{{ role_path }}/files/repmgr.conf"
     dest: "/etc/repmgr.conf"
     force: yes
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
     mode: 0644
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Change repmgr.conf"
   lineinfile:
@@ -298,8 +290,7 @@
     - { regexp: '^node_id=', line: "node_id={{groups['db'].index(inventory_hostname)+1 }}" }
     - { regexp: '^priority=', line: "priority={{ 100-groups['db'].index(inventory_hostname) }}" }
     - { regexp: '(.*)host.*=.*(user=.*)', line: '\1host={{ ansible_hostname }} \2' }
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Activate repmgrd daemon via init scripts"
   lineinfile:
@@ -313,15 +304,13 @@
     - { regexp: '^REPMGRD_ENABLED=', line: 'REPMGRD_ENABLED=yes' }
     - { regexp: '^#REPMGRD_CONF=', line: 'REPMGRD_CONF="/etc/repmgr.conf"' }
     - { regexp: '^#REPMGRD_OPTS=', line: 'REPMGRD_OPTS="--monitoring-history --verbose"' }
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Check /var/log/repmgr existence"
   stat:
     path: /var/log/repmgr
   register: repmgr_log_file_exists
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Create /var/log/repmgr directory if not exist"
   file:
@@ -331,15 +320,13 @@
     group: "{{ pggroup }}"
     mode: 0755
   when: not repmgr_log_file_exists.stat.exists
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Check repmgrd.log existence"
   stat:
     path: /var/log/repmgr/repmgrd.log
   register: repmgrd_log_file_exists
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Create repmgr log file if not exist"
   file:
@@ -349,23 +336,26 @@
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
   when: not repmgrd_log_file_exists.stat.exists
-  become: true
-  become_user: root
+  tags: pg
 
 - block:
-# Actions inside this block will apply on master node only. If the master db during testing or failure moved to anothe node don't apply playbook.yml. Before applying this playbook you need to come back roles of the nodes to initial state.   
+# Actions inside this block will apply on master node only. 
+# If the master db during testing or failure moved to another node don't apply the playbook.yml. 
+# Before the applying this playbook you need to switchover databases to initial state.   
     - name: "Check if PostgreSQL database cluster is initialized"
       stat:
         path: "{{ pgdata }}/PG_VERSION"
       register: pgdata_dir_version
       become: yes
       become_user: "{{ pguser }}" 
+      tags: pg
 
     - name: " IF not, Postgres will initialize the database cluster on master node"
       shell: "{{ pgbin }}/initdb -D {{ pgdata }}"
       become: yes
       become_user: "{{ pguser }}" 
       when: not pgdata_dir_version.stat.exists
+      tags: pg
 
     - name: "The copy repmgr.sh on primary db"
       copy:
@@ -376,19 +366,17 @@
         group: "{{ pggroup }}"
         mode: 0744
       run_once: yes
-      become: true
-      become_user: root
+      tags: pg
    
     - name: "The copy postgresql.replication.conf"
       copy:
-        src: "{{role_path}}/files/postgresql.replication.conf"
+        src: "{{ role_path }}/files/postgresql.replication.conf"
         dest: "{{ pgconf }}/postgresql.replication.conf"
         force: yes
         mode: 0644
         owner: "{{ pguser }}"
         group: "{{ pggroup }}"
-      become: true
-      become_user: root
+      tags: pg
 
     - name: "Include replication to postgresql.conf"
       lineinfile:
@@ -398,8 +386,7 @@
         state: present
         owner: "{{ pguser }}"
         group: "{{ pggroup }}"
-      become: true
-      become_user: root
+      tags: pg
 
     - name: "Copy pg_hba.conf to master"
       template:
@@ -407,16 +394,14 @@
         dest: "{{ pgconf }}/pg_hba.conf"
         owner: "{{ pguser }}"
         group: "{{ pggroup }}"
-      become: true
-      become_user: root
+      tags: pg
 
     - name: "Restart service postgres"
       systemd:
         state: restarted
         daemon_reload: yes
-        name: postgresql@9.6-main.service 
-      become: true
-      become_user: root
+        name: postgresql@{{ pgversion }}-main.service 
+      tags: pg
 
     - name: "Run repmgr.sh on primary db once"
       shell: "{{ pghome }}/repmgr.sh >> {{ pghome }}/rep.log"
@@ -426,6 +411,7 @@
       ignore_errors: yes
       args:
         executable: /bin/bash
+      tags: pg
 
     - name: "Registration the master node in repmgr cluster"
       command: "/usr/bin/repmgr -f /etc/repmgr.conf master register --force"
@@ -437,10 +423,12 @@
       ignore_errors: true
       when:
          - not pgsql_cluster_configured
+      tags: pg
 
     - name: "Debug master register"
       debug:
        var: register_result
+      tags: pg
 
     - name: "Fail the play if the previous command did not succeed"
       fail:
@@ -449,6 +437,7 @@
         - register_result.stderr is defined
         - "'ERROR' in register_result.stderr"
         - "'there is a master already in cluster {{ pgsql_cluster_name }}' not in register_result.stderr"
+      tags: pg
   when: (not pgsql_cluster or pgsql_cluster_master)
 
 - block:
@@ -460,6 +449,8 @@
       register: data_dir_files
       changed_when: false
       become: true
+      become_user: "{{ pguser }}"
+      tags: pg
     
     - name: "Check if wal receiver process exist then skip cloning"
       shell: "ps -ef | grep 'wal receiver'"
@@ -467,28 +458,30 @@
       become: true
       become_user: "{{ pguser }}"
       ignore_errors: true
+      tags: pg
 
     - name: "Debug receiver_register"
       debug:
         var: receiver_result.stdout_lines|length
+      tags: pg
 
     - name: "Debug data_dir_files"
       debug:
         var: data_dir_files.matched|int
+      tags: pg
 
     - name: "Stop PG replica before cloning if replica exist (old or failed)"
       systemd:
         name: "postgresql"
         state: stopped
         daemon_reload: yes
-        name: postgresql@9.6-main.service
-      become: true
-      become_user: root
+        name: postgresql@{{ pgversion }}-main.service
       when: ( data_dir_files.matched|int == 0 or receiver_result.stdout_lines|length < 2)
+      tags: pg
 
     - name: "Clone master databases to replicas"
       command: >
-        /usr/bin/repmgr --cluster 9.6/main -f /etc/repmgr.conf
+        /usr/bin/repmgr --cluster {{ pgversion }}/main -f /etc/repmgr.conf
         -h {{ master_hostname }} -p 5432
         -U repmgr -d repmgr -D {{ pgdata }}
         --copy-external-config-files=samepath --verbose
@@ -498,18 +491,18 @@
       become: true
       become_user: "{{ pguser }}" 
       when: ( data_dir_files.matched|int == 0 or receiver_result.stdout_lines|length < 2)
+      tags: pg
     
     - name: "Restart service postgres on replicas"
       systemd:
         state: restarted
         daemon_reload: yes
-        name: postgresql@9.6-main.service 
-      become: true
-      become_user: root
+        name: postgresql@{{ pgversion }}-main.service 
+      tags: pg
 
     - name: "Register the replicas"
       command: >
-        /usr/bin/repmgr --cluster 9.6/main -f /etc/repmgr.conf
+        /usr/bin/repmgr --cluster {{ pgversion }}/main -f /etc/repmgr.conf
         -h {{ master_hostname }} -p 5432
         -U repmgr -d repmgr -D {{ pgdata }}
         standby register --upstream-node-id=1 --force
@@ -520,10 +513,12 @@
       become_user: "{{ pguser }}"
       # when: ( data_dir_files.matched|int == 0 or receiver_result.stdout_lines|length < 1)
       ignore_errors: true
+      tags: pg
 
     - name: "Debug standby register"
       debug:
         var: register_result
+      tags: pg
 
     - name: "Fail the play if the previous command did not succeed"
       fail:
@@ -532,6 +527,7 @@
         - register_result.stderr is defined
         - "'ERROR' in register_result.stderr"
         - "'Node {{ pgsql_repmgr_node }} exists already with node_name' not in register_result.stderr"
+      tags: pg
   when: not pgsql_cluster_master
 
 - name: "Copy pg_hba.conf to targets. Final"
@@ -540,16 +536,14 @@
     dest: "{{ pgconf }}/pg_hba.conf"
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Restart service postgres"
   systemd:
-    name: postgresql@9.6-main.service 
+    name: postgresql@{{ pgversion }}-main.service 
     state: restarted
     daemon_reload: yes
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Grants on /var/log/repmgr directory for Postgres user"
   file:
@@ -558,8 +552,7 @@
     mode: 0755
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Make sure /var/log/postgresql directory exist and has owners"
   file:
@@ -568,29 +561,25 @@
     mode: 0775
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Force systemd to reread configs after repmgrd change /etc/default/repmgrd" 
   systemd:
     daemon_reload: yes
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Enable and stop service repmgrd"
   systemd:
     name: repmgrd.service
     state: stopped
     enabled: yes
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Start service repmgrd"
   systemd:
     name: repmgrd.service
     state: started
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Store host facts"
   blockinfile:
@@ -600,8 +589,7 @@
       [pgsql]
       cluster_configured: true
   when: pgsql_cluster
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Reload ansible_local"
   setup:

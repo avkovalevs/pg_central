@@ -1,9 +1,10 @@
 ---
 # defaults file for postgres
+pgversion: 12
 pghome: /var/lib/postgresql
-pgdata: /var/lib/postgresql/9.6/main
-pgbin: /usr/lib/postgresql/9.6/bin
-pgconf: /etc/postgresql/9.6/main
+pgdata: /var/lib/postgresql/{{ pgversion }}/main
+pgbin: /usr/lib/postgresql/{{ pgversion }}/bin
+pgconf: /etc/postgresql/{{ pgversion }}/main
 pguser: postgres
 pggroup: postgres
 pgsql_cluster_master: false
