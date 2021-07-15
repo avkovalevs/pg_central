@@ -4,9 +4,15 @@
   hosts: all
   gather_facts: true
   tasks:
-    - name: Display all hostnames 
+    - name: "Display all hostnames"
       debug:
         msg: "The hostname is {{ ansible_hostname }} and the OS is {{ ansible_os_family }}"
+
+    - name: "Update /etc/hosts file"
+      blockinfile:
+        dest: /etc/hosts
+        content: "{{ lookup('template', 'hosts.j2') }}"
+        state: present
 
 - name: "Tuning db nodes"
   hosts: db

@@ -56,3 +56,4 @@ resource "hcloud_volume_attachment" "main" {
   server_id = "${hcloud_server.pg[count.index].id}"
   automount = true
 }
+

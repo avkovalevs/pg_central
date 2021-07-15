@@ -1,13 +1,6 @@
 ---
 # tasks file for common
 
-- name: "Update /etc/hosts file"
-  blockinfile:
-    dest: /etc/hosts
-    content: "{{ lookup('template', 'hosts.j2') }}"
-    state: present
-  tags: common
-
 - name: Change ssh_config parameter StrictHostKeyChecking to no
   lineinfile:
     path: /etc/ssh/ssh_config

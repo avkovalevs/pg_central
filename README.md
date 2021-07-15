@@ -13,7 +13,7 @@ PostgreSQL 12, repmgr 5.2.1, Ansible 2.9.6, Terraform 1.0.2, Ubuntu 20.04 LTS
 ## Usage
 ### Deployment of infrastructure (provisioning) using terraform.
 These steps will create 2 VM, network and subnetwork, 2 external storage drives for PostgreSQL data.  
-All commands for terraform and ansible configuration must be run from the root user.
+All commands for terraform and ansible configuration must be run by the root user.
 1. Clone this repository and change the directory to terraform:
 ~~~
 git clone https://github.com/avkovalevs/pg_central.git
@@ -75,10 +75,11 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub root@127.0.0.1
 ~~~
 ansible-playbook -v -i test master.yml --extra-vars "env_state=present" -t common
 ~~~
-"-v" - verbose mode enabled,
-"-i test" - show the inventory file using for playing,
-"master.yml" - the main file with tasks and roles, 
-"--extra-vars" - additional parameter like "env_state=present",  
-"-t common" - use tag "common". 
+- -v: Verbose mode enabled
+- -i test: Show the inventory file using for playing
+- master.yml: The main file with tasks and roles
+- --extra-vars: Additional parameter like "env_state=present"
+- -t common: Use tag "common"
 Ansible master will play only tasks which has tags common. 
 This is usefull parameter if no need to play all the roles, all the tasks each times. 
+To run all tasks no use tag parameter at all.
