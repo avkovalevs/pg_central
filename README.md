@@ -9,6 +9,7 @@ PostgreSQL 12, repmgr 5.2.1, Ansible 2.9.6, Terraform 1.0.2, Ubuntu 20.04 LTS
 - Generated API Token (with read and write permissions)
 - Generated Public key 
 - Terraform and ansible installed
+- .ansible_vault_pass
 
 ## Usage
 ### Deployment of infrastructure (provisioning) using terraform.
@@ -71,15 +72,21 @@ ssh root@use_public_ip_from_terraform_output_here
 ssh-copy-id -i ~/.ssh/id_rsa.pub root@127.0.0.1
 ~~~
 4. Setup inventory and check variables (each time after provisioning). For the inventory setup it is required to edit hosts file in the dev, test or prod catalogs depend on enviroment you will use.
-5. Run the playbook to deploy software stack (any times)
+5. Run the playbook to deploy software stack (any times).  Start the playbokk inside the "ansible" directory.
 ~~~
-ansible-playbook -v -i test master.yml --extra-vars "env_state=present" -t common
+cd ../ansible
+ansible-playbook -v -i test master.yml --extra-vars "env_state=present" -t common --vault-password-file=.ansible_vault_pass
 ~~~
 - -v: Verbose mode enabled
 - -i test: Show the inventory file using for playing
 - master.yml: The main file with tasks and roles
 - --extra-vars: Additional parameter like "env_state=present"
 - -t common: Use tag "common"
+- --vault-password-file: This file store the password used for encryption sensitive information like passwords, secrets and so on. This file usually added to .gitignore
+To encrypt file with credential use following command below:
+~~~
+ansible-vault encrypt ./group_vars/credentials --vault-password-file .ansible_vault_pass
+~~~
 Ansible master will play only tasks which has tags common. 
 This is usefull parameter if no need to play all the roles, all the tasks each times. 
 To run all tasks no use tag parameter at all.

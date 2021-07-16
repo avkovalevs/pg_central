@@ -4,12 +4,12 @@
 - name: "Set default state of pgsql_cluster_configured"
   set_fact:
     pgsql_cluster_configured: false
-  tags: db
+  tags: pg
 
 - name: "Check default_ip"    
   debug:
     var: ansible_all_ipv4_addresses 
-  tags: db
+  tags: pg
 
 - name: "Get state of pgsql_cluster_configured from local facts"
   set_fact: 
@@ -18,7 +18,7 @@
     - ansible_local.pgsql is defined 
     - ansible_local.pgsql.pgsql is defined 
     - ansible_local.pgsql.pgsql.cluster_configured is defined
-  tags: db
+  tags: pg
 
 - name: "Set pgsql_cluster_master"
   set_fact:
@@ -26,72 +26,73 @@
   when:  
     - hostvars[inventory_hostname].pgsql_cluster_master is defined
     - hostvars[inventory_hostname].pgsql_cluster_master
-  tags: db
+  tags: pg
 
 - name: "Determine master hostname"
   set_fact:
     pgsql_cluster_master_host: "{{ item }}"
-  with_items: "{{ groups[db] }}"
+  with_items: "{{ groups['db'] }}"
   when:
     - hostvars[item].pgsql_cluster_master is defined
     - hostvars[item].pgsql_cluster_master
-  tags: db
-
-- name: "Add Ubuntu postgres repo"
-  apt_repository:
-    repo: 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main'
-    filename: 'pgdg'
-  tags: db
+  tags: pg
 
 - name: "Add an apt signing key"
   apt_key:
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
     state: present
-  tags: db
+  tags: pg
 
-# The passwordless access between nodes is required for postgres user (system account)
-- name: cross-authorize private SSH key access from this VM to other VMs
-  copy:
-     src: /home/ubuntu/.ssh/id_rsa
-     dest: /home/ubuntu/.ssh/id_rsa
-     mode: 0400
-     owner: ubuntu
-     group: ubuntu
-  become: true
-  become_user: root
-
-- name: cross-authorize public SSH key access from this VM to other VMs
-  copy:
-     src: /home/ubuntu/.ssh/id_rsa
-     dest: /home/ubuntu/.ssh/id_rsa
-     mode: 0400
-     owner: ubuntu
-     group: ubuntu
-     backup: yes
-  become: true
-  become_user: root
-
-- name: Set authorized key taken from file
-  authorized_key:
-    user: ubuntu
+- name: "Add Ubuntu postgres repo"
+  apt_repository:
+    repo: 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main'
+    filename: 'pgdg'
     state: present
-    key: "{{ lookup('file', '/home/ubuntu/.ssh/id_rsa.pub') }}"
-  delegate_to: localhost
-  become: true
-  become_user: root
+  tags: pg
 
-- name: Fix for locales
+- name: "Fix for locales"
   lineinfile:
     path: /etc/environment
     line: "export LC_ALL=en_US.UTF-8"
     create: yes
   tags: pg
-   
+# The passwordless access between nodes is required for postgres user (system account)
+#- name: cross-authorize private SSH key access from this VM to other VMs
+#  copy:
+#     src: /home/ubuntu/.ssh/id_rsa
+#     dest: /home/ubuntu/.ssh/id_rsa
+#     mode: 0400
+#     owner: ubuntu
+#     group: ubuntu
+#  become: true
+#  become_user: root
+#
+#- name: cross-authorize public SSH key access from this VM to other VMs
+#  copy:
+#     src: /home/ubuntu/.ssh/id_rsa
+#     dest: /home/ubuntu/.ssh/id_rsa
+#     mode: 0400
+#     owner: ubuntu
+#     group: ubuntu
+#     backup: yes
+#  become: true
+#  become_user: root
+#
+#- name: Set authorized key taken from file
+#  authorized_key:
+#    user: ubuntu
+#    state: present
+#    key: "{{ lookup('file', '/home/ubuntu/.ssh/id_rsa.pub') }}"
+#  delegate_to: localhost
+#  become: true
+#  become_user: root
+
 - name: "Install postgres, repmgr & python packages for ansible modules"
   apt:
     name: "{{ repmgr_packages }}"
     allow_unauthenticated: true
     force_apt_get: true
+    update_cache: true
   vars:
     repmgr_packages:
     - postgresql-{{ pgversion }}
@@ -107,28 +108,9 @@
   args:
     creates: "{{role_path}}/files/postgres_user_id_rsa"
   delegate_to: localhost
-  become: true
-  become_user: root
   run_once: true
+  tags: pg
   
-- name: "Change group and permissions for id_rsa"
-  file:
-    path: "{{role_path}}/files/postgres_user_id_rsa" 
-    owner: ubuntu 
-    group: ubuntu
-  become: true
-  become_user: root
-  delegate_to: localhost
-
-- name: "Change group and permissions for id_rsa.pub"
-  file:
-    path: "{{ role_path }}/files/postgres_user_id_rsa.pub" 
-    owner: ubuntu 
-    group: ubuntu
-  become: true
-  become_user: root
-  delegate_to: localhost
-
 - name: "Make sure SSH directory for Postgres user exists"
   file:
     path: "{{ pghome }}/.ssh"
@@ -136,8 +118,7 @@
     mode: 0700
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
-  become: true
-  become_user: root
+  tags: pg
 
 - name: "Copy private SSH key for Postgres user"
   copy:
@@ -146,9 +127,7 @@
     mode: 0600
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
-  become: true
-  become_user: root
-  become_method: sudo
+  tags: pg
 
 - name: "Copy public SSH key for Postgres user"
   copy:
@@ -157,8 +136,7 @@
     mode: 0644
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
-  become: true
-  become_user: root 
+  tags: pg
 
 - name: "Cross authorize this key among all Postgres servers"
   lineinfile:
@@ -169,8 +147,7 @@
     group: "{{ pggroup }}"
     line: "{{ lookup('file', 'postgres_user_id_rsa.pub') }}"
     state: present
-  become: true
-  become_user: root 
+  tags: pg
 
 - name: "Add postgres environment variables to pgsql_profile"
   blockinfile:
@@ -188,8 +165,7 @@
       alias pgstart='pg_ctl -D /etc/postgresql/{{ pgversion }}/main --log=/var/log/postgresql/posgresql-{{ pgversion }}-main.log start'
       alias pglog='tail -100f /var/log/postgresql/postgresql-{{ pgversion }}-main.log'
     state: present
-  become: true
-  become_user: root 
+  tags: pg
 
 - name: "Check if the .profile file exist in pghome directory"
   copy: 
@@ -199,9 +175,8 @@
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
     mode: 0644
-  become: true
-  become_user: root 
-
+    remote_src: yes
+  tags: pg
 
 - name: "Source pgsql_profile into the postgres user profile"
   lineinfile:

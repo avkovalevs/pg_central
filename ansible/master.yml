@@ -16,5 +16,8 @@
 
 - name: "Tuning db nodes"
   hosts: db
+  vars_files: 
+  - ./group_vars/credentials
   roles:
     - common
+    - postgres

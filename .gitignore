@@ -4,3 +4,4 @@
 *.tfstate.lock.info
 .terraform/
 variables.tf
+.ansible_vault_pass
