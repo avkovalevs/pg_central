@@ -224,7 +224,7 @@
     domain: postgres
     limit_type: soft
     limit_item: nofile
-    value: 4096
+    value: '4096'
   tags: pg
 
 - name: "Add nofile hard limit for the user postgres"
@@ -232,7 +232,7 @@
     domain: postgres
     limit_type: hard
     limit_item: nofile
-    value: 16384
+    value: '16384'
   tags: pg
 
 - name: "Add postgres user to sudoers"
@@ -334,7 +334,7 @@
 
     - name: "The copy repmgr.sh on primary db"
       copy:
-        src: "{{role_path}}/files/repmgr.sh"
+        src: "{{ role_path }}/files/repmgr.sh"
         dest: "{{ pghome }}/repmgr.sh"
         force: no
         owner: "{{ pguser }}"
