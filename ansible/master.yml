@@ -1,4 +1,11 @@
 ---
+#- name: "Install hcloud-python module on Ansible-master for Hetzner Cloud API"
+#  hosts: localhost
+#  gather_facts: true
+#  tasks:
+#  - name:
+#    pip: 
+#      name: hcloud-python
 
 - name: "Tuning all nodes"
   hosts: all

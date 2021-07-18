@@ -10,22 +10,22 @@ local   all           all                                       peer
 # replication rules
 local   replication   repmgr                                 trust
 host    replication   repmgr            127.0.0.1/32         trust
-host    replication   repmgr            {{ ( ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask  ) | ipaddr('net')  }}        trust
+host    replication   repmgr            {{ ( ansible_ens10.ivp4.network + '/' + ansible_ens10.ipv4.netmask  ) | ipaddr('net')  }}        trust
 
 local   repmgr        repmgr                                 trust
 host    repmgr        repmgr            127.0.0.1/32         trust
-host    repmgr        repmgr            {{ ( ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask  ) | ipaddr('net')  }}        trust
+host    repmgr        repmgr            {{ ( ansible_ens10.ipv4.network + '/' + ansible_ens10.ipv4.netmask  ) | ipaddr('net')  }}        trust
 #{%   elif pgsql_replication_provider == 'basebackup' %}
 # replication rules
 #{%    for user in pgsql_replication_users %}
 #{%      if user.state | default('present') == "present" %}
-#host   {{ user.db }}           {{ user.name }}   {{ user.ip|default(( ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask  ) | ipaddr('net')) }}           md5
+#host   {{ user.db }}           {{ user.name }}   {{ user.ip|default(( ansible_ens10.ipv4.network + '/' + ansible_ens10.ipv4.netmask  ) | ipaddr('net')) }}           md5
 #{%       endif %}
 #{%    endfor %}
 {%   endif %}
 {% endif %}
 
 # fallback
-host    all           pgpooler          {{ ( ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask  ) | ipaddr('net')  }}        md5
-host    all           postgres          {{ ( ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask  ) | ipaddr('net')  }}        md5     
-host    all           all          	{{ ( ansible_default_ipv4.network + '/' + ansible_default_ipv4.netmask  ) | ipaddr('net')  }}        md5 
+host    all           pgpooler          {{ ( ansible_ens10.ipv4.network + '/' + ansible_ens10.ipv4.netmask  ) | ipaddr('net')  }}        md5
+host    all           postgres          {{ ( ansible_ens10.ipv4.network + '/' + ansible_ens10.ipv4.netmask  ) | ipaddr('net')  }}        md5     
+host    all           all          	{{ ( ansible_ens10.ipv4.network + '/' + ansible_ens10.ipv4.netmask  ) | ipaddr('net')  }}        md5 
