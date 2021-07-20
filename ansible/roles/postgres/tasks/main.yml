@@ -158,7 +158,7 @@
     mode: 0400
     block: |
       export PATH=$PATH:/usr/sbin:/usr/lib/postgresql/{{ pgversion }}/bin
-      export PGDATA=/var/lib/postgresql/{{ pgversion }}/main
+      export PGDATA={{ pgdata }}
       export PGPORT=5432
       export PGCLUSTER={{ pgversion }}/main
       alias pgstop='pg_ctl -D /etc/postgresql/{{ pgversion }}/main --log=/var/log/postgresql/posgresql-{{ pgversion }}-main.log stop'
@@ -244,8 +244,8 @@
   tags: pg
 
 - name: "The copy repmgr.conf"
-  copy:
-    src: "{{ role_path }}/files/repmgr.conf"
+  template:
+    src: "repmgr.conf.j2"
     dest: "/etc/repmgr.conf"
     force: yes
     owner: "{{ pguser }}"
@@ -311,6 +311,25 @@
     owner: "{{ pguser }}"
     group: "{{ pggroup }}"
   when: not repmgrd_log_file_exists.stat.exists
+  tags: pg
+
+- name: "Create {{ pgdata }} directory if not exist"
+  file:
+    path: "{{ pgdata }}"
+    state: directory
+    owner: "{{ pguser }}"
+    group: "{{ pggroup }}"
+    mode: 0700
+  tags: pg
+
+- name: "The copy postgresql.conf"
+  template:
+    src: "postgresql.conf.j2"
+    dest: "{{ pgconf }}/postgresql.conf"
+    force: yes
+    owner: "{{ pguser }}"
+    group: "{{ pggroup }}"
+    mode: 0644
   tags: pg
 
 - block:
