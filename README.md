@@ -47,7 +47,7 @@ terraform apply
 These steps will cover installation and tuning steps for PG software, set up common steps for nodes, and so on.
 Before the installation needs to install ansible software locally on the same node as the terraform. This node will an ansible master.
 Nodes created on previous steps are called managed nodes. 
-1. Install ansible software on master node (once). Use this commands below for Ubuntu machine only.
+1. Install ansible software on master node (once). Use these commands below for Ubuntu machine only.
 ~~~
 sudo apt-add-repository ppa:ansible/ansible
 sudo apt install software-properties-common -y
