@@ -1,0 +1,6 @@
+---
+# defaults file for common
+vg: pgvg
+lv: pglv
+fs: ext4
+mount_point: /data
