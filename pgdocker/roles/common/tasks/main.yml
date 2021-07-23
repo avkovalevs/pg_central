@@ -60,6 +60,7 @@
     - nmon
     - nmap
     - curl
+    - git
     - wget
     - strace
     - ca-certificates

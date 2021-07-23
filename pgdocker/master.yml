@@ -20,4 +20,4 @@
   - ./group_vars/credentials
   roles:
     - common
-#    - pgdocker
+    - pgdocker
