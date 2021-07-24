@@ -4,3 +4,6 @@ repos: /root/repos
 pguser: postgres
 pggroup: postgres
 pghome: /home/postgres
+pgsql_cluster: true
+pgsql_replication_provider: repmgr
+

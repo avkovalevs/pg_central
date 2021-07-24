@@ -36,3 +36,37 @@
     uid: 5432
     state: present
   tags: pg
+
+- name: "Replace pg_hba.conf on your own"
+  copy: 
+    src: "{{ role_path }}/files/pg_hba.conf"
+    dest: "{{ item }}"
+  with_items:
+  - "{{ repos }}/pg-dock-conf/n1/postgres/pg_hba.conf"
+  - "{{ repos }}/pg-dock-conf/n2/postgres/pg_hba.conf"
+  tags: pg
+
+- name: "Build images"
+  shell: "{{ repos }}/pg-dock/build.sh"
+  args:
+    chdir: "{{ repos }}/pg-dock"
+  environment:
+    PG_DOCK_NODE: "n{{ groups['db'].index(inventory_hostname)+1 }}"
+    PG_DOCK_CONF_IMAGE: "n{{ groups['db'].index(inventory_hostname)+1 }}v1"
+  tags: pg
+   
+- name: "Update images"
+  shell: "{{ repos }}/pg-dock/update.sh"
+  args:
+    chdir: "{{ repos }}/pg-dock"
+  environment:
+    PG_DOCK_CONF_IMAGE: "n{{ groups['db'].index(inventory_hostname)+1 }}v1"
+  tags: pg
+
+- name: "Run containers"
+  shell: "/usr/local/bin/docker-compose up -d"
+  args:
+    chdir: "{{ repos }}/pg-dock"
+  environment:
+    PG_DOCK_NODE: "n{{ groups['db'].index(inventory_hostname)+1 }}"
+  tags: pg
