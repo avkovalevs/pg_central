@@ -70,3 +70,43 @@
   environment:
     PG_DOCK_NODE: "n{{ groups['db'].index(inventory_hostname)+1 }}"
   tags: pg
+
+- block:
+  - name: "Register master database"
+    shell: "docker exec -it -u {{ pguser }} pg-dock repmgr master register"
+    register: register_master
+    when:
+         - not pgsql_cluster_configured
+    tags: pg
+  
+  - name: "Debug master register"
+    debug:
+      var: register_master
+    tags: pg
+  when: (not pgsql_cluster or pgsql_cluster_master)
+
+- block:
+  - name "Clone database from master to standby" 
+    shell: "docker exec -it -u {{ pguser }} -e PG_DOCK_FROM=n1 pg-dock manage/repmgr_clone_standby.sh
+    register: register_clone
+    when:
+         - not pgsql_cluster_configured
+    tags: pg
+
+  - name: "Debug clone"
+    debug:
+      var: register_clone
+    tags: pg
+     
+  - name: "Register standby database"
+    shell: "docker exec -it -u {{ pguser }} pg-dock repmgr standby register"
+    register: register_standby
+    when:
+         - not pgsql_cluster_configured
+    tags: pg
+
+  - name: "Debug standby register"
+    debug:
+      var: register_standby
+    tags: pg
+  when: not pgsql_cluster_master
