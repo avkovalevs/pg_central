@@ -1,3 +1,6 @@
 ---
 # defaults file for pgdocker
 repos: /root/repos
+pguser: postgres
+pggroup: postgres
+pghome: /home/postgres

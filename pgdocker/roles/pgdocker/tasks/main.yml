@@ -18,3 +18,21 @@
   - { repos: 'https://github.com/xcrezd/pg-dock-conf.git', reponames: 'pg-dock-conf' }
   - { repos: 'https://github.com/xcrezd/pg-dock-base.git', reponames: 'pg-dock-base' }
   tags: pg
+
+- name: "Create group"
+  group:
+    name: "{{ pggroup }}"
+    gid: 5432
+    state: present
+  tags: pg
+
+- name: "Add the user {{ pguser }}"
+  user:
+    name: "{{ pguser }}"
+    shell: /bin/bash
+    group: "{{ pggroup }}"
+    home: "{{ pghome }}"
+    create_home: yes
+    uid: 5432
+    state: present
+  tags: pg
