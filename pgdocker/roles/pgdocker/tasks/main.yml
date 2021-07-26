@@ -46,6 +46,18 @@
   - "{{ repos }}/pg-dock-conf/n2/postgres/pg_hba.conf"
   tags: pg
 
+- name: "Replace repmgr.conf on master source"
+  copy: 
+    src: "{{ role_path }}/files/repmgr_master.conf"
+    dest: "{{ repos }}/pg-dock-conf/n1/repmgr/repmgr.conf"
+  tags: pg
+
+- name: "Replace repmgr.conf on standby source"
+  copy: 
+    src: "{{ role_path }}/files/repmgr_standby.conf"
+    dest: "{{ repos }}/pg-dock-conf/n2/repmgr/repmgr.conf"
+  tags: pg
+
 - name: "Build images"
   shell: "{{ repos }}/pg-dock/build.sh"
   args:
@@ -55,7 +67,7 @@
     PG_DOCK_CONF_IMAGE: "n{{ groups['db'].index(inventory_hostname)+1 }}v1"
   tags: pg
    
-- name: "Update images"
+- name: "Update images. Added scripts to images"
   shell: "{{ repos }}/pg-dock/update.sh"
   args:
     chdir: "{{ repos }}/pg-dock"
@@ -63,7 +75,7 @@
     PG_DOCK_CONF_IMAGE: "n{{ groups['db'].index(inventory_hostname)+1 }}v1"
   tags: pg
 
-- name: "Run containers"
+- name: "Run database containers"
   shell: "/usr/local/bin/docker-compose up -d"
   args:
     chdir: "{{ repos }}/pg-dock"
@@ -71,9 +83,45 @@
     PG_DOCK_NODE: "n{{ groups['db'].index(inventory_hostname)+1 }}"
   tags: pg
 
+- name: "Set default state of pgsql_cluster_configured"
+  set_fact:
+    pgsql_cluster_configured: false
+  tags: pg
+
+- name: "Get state of pgsql_cluster_configured from local facts"
+  set_fact:
+    pgsql_cluster_configured: "{{ ansible_local.pgsql.pgsql.cluster_configured }}"
+  when:
+    - ansible_local.pgsql is defined
+    - ansible_local.pgsql.pgsql is defined
+    - ansible_local.pgsql.pgsql.cluster_configured is defined
+  tags: pg
+
+- name: "Set pgsql_cluster_master"
+  set_fact:
+    pgsql_cluster_master: true
+  when:
+    - hostvars[inventory_hostname].pgsql_cluster_master is defined
+    - hostvars[inventory_hostname].pgsql_cluster_master
+  tags: pg
+
+- name: "Determine master hostname"
+  set_fact:
+    pgsql_cluster_master_host: "{{ item }}"
+  with_items: "{{ groups[pgsql_cluster_group_name] }}"
+  when:
+    - hostvars[item].pgsql_cluster_master is defined
+    - hostvars[item].pgsql_cluster_master
+  tags: pg
+
+- name: "Hostname of PGSQL Master"
+  debug:
+    msg: "'{{ pgsql_cluster_master_host }}'"
+  tags: pg
+
 - block:
   - name: "Register master database"
-    shell: "docker exec -it -u {{ pguser }} pg-dock repmgr master register"
+    command: docker exec -it -u postgres pg-dock repmgr master register
     register: register_master
     when:
          - not pgsql_cluster_configured
@@ -86,8 +134,8 @@
   when: (not pgsql_cluster or pgsql_cluster_master)
 
 - block:
-  - name "Clone database from master to standby" 
-    shell: "docker exec -it -u {{ pguser }} -e PG_DOCK_FROM=n1 pg-dock manage/repmgr_clone_standby.sh
+  - name: "Clone database from master to standby" 
+    command: docker exec -it -u postgres pg-dock -e PG_DOCK_FROM=n1 manage/repmgr_clone_standby.sh
     register: register_clone
     when:
          - not pgsql_cluster_configured
@@ -99,7 +147,7 @@
     tags: pg
      
   - name: "Register standby database"
-    shell: "docker exec -it -u {{ pguser }} pg-dock repmgr standby register"
+    command: docker exec -it -u  postgres pg-dock repmgr standby register
     register: register_standby
     when:
          - not pgsql_cluster_configured
@@ -110,3 +158,19 @@
       var: register_standby
     tags: pg
   when: not pgsql_cluster_master
+
+- name: "Store host facts"
+  blockinfile:
+    dest: /etc/ansible/facts.d/pgsql.fact
+    create: true
+    block: |
+      [pgsql]
+      cluster_configured: true
+  when: pgsql_cluster
+  tags: pg
+    
+- name: "Reload ansible_local"
+  setup:
+    filter: ansible_local
+  tags: pg
+

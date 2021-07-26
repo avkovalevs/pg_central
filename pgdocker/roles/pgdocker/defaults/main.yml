@@ -6,4 +6,6 @@ pggroup: postgres
 pghome: /home/postgres
 pgsql_cluster: true
 pgsql_replication_provider: repmgr
-
+pgsql_cluster_master: false
+pgsql_cluster: true
+pgsql_cluster_group_name: db
