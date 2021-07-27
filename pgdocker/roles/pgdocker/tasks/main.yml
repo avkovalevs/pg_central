@@ -75,6 +75,12 @@
     PG_DOCK_CONF_IMAGE: "n{{ groups['db'].index(inventory_hostname)+1 }}v1"
   tags: pg
 
+- name: "Change compose file"
+  copy: 
+    src: "{{ role_path }}/files/docker-compose.stage.yml"
+    dest: "{{ repos }}/pg-dock/docker-compose.yml"
+  tags: pg
+
 - name: "Run database containers"
   shell: "/usr/local/bin/docker-compose up -d"
   args:
