@@ -20,4 +20,5 @@
   - ./group_vars/credentials
   roles:
     - common
-    - pgdocker
+    - bitnami
+#    - pgdocker

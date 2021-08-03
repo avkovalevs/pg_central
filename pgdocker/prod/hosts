@@ -14,4 +14,4 @@
 
 [db]
 95.217.152.135 pgsql_cluster_master=true master_hostname=pgnode-0
-95.216.173.12
+95.217.152.142

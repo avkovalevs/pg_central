@@ -1,0 +1,27 @@
+version: '2'
+services:
+  pg-0:
+    image: docker.io/bitnami/postgresql-repmgr:11
+    ports:
+      - 5432
+    volumes:
+      - data0:/bitnami/postgresql
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD={{ pgpass }}
+      - POSTGRESQL_USERNAME={{ pguser }}
+      - POSTGRESQL_PASSWORD={{ pgpass }}
+      - POSTGRESQL_DATABASE=testdb
+      - REPMGR_PASSWORD={{ repmgrpass }}
+      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-1:5432
+      - REPMGR_NODE_NAME=pg-0
+      - REPMGR_NODE_NETWORK_NAME=pg-0
+      - REPMGR_PORT_NUMBER=5432
+volumes:
+  data0:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/0

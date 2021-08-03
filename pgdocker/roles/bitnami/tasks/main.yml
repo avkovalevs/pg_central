@@ -1,0 +1,39 @@
+---
+# tasks file for bitnami
+- name: "Create group"
+  group:
+    name: "{{ pggroup }}"
+    gid: 1001
+    state: present
+  tags: bpg
+
+- name: "Add the user {{ pguser }}"
+  user:
+    name: "{{ pguser }}"
+    shell: /bin/bash
+    group: "{{ pggroup }}"
+    home: "{{ pghome }}"
+    create_home: yes
+    uid: 1001
+    state: present
+  tags: bpg
+
+- name: "Create 0 directory"
+  file:
+    path: "{{ mount_point }}/0"
+    state: directory
+    mode: 0755
+  tags: bpg
+
+- name: "Copy docker-compose.yml to target nodes"
+  template:
+    src: docker-compose.yml.j2
+    dest: /root/docker-compose.yml
+  tags: bpg
+
+- name: "Run database containers"
+  shell: "/usr/local/bin/docker-compose up -d"
+  args:
+    chdir: "/root"
+  tags: bpg
+

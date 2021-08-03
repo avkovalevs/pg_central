@@ -75,7 +75,7 @@
     PG_DOCK_CONF_IMAGE: "n{{ groups['db'].index(inventory_hostname)+1 }}v1"
   tags: pg
 
-- name: "Change compose file"
+- name: "Change docker-compose.yml file on stage.yml. The stage.yml file contains ports"
   copy: 
     src: "{{ role_path }}/files/docker-compose.stage.yml"
     dest: "{{ repos }}/pg-dock/docker-compose.yml"
@@ -126,7 +126,7 @@
   tags: pg
 
 - block:
-  - name: "Register master database"
+  - name: "Registration of the master database inside the container"
     command: docker exec -it -u postgres pg-dock repmgr master register
     register: register_master
     when:
@@ -140,7 +140,7 @@
   when: (not pgsql_cluster or pgsql_cluster_master)
 
 - block:
-  - name: "Clone database from master to standby" 
+  - name: "Clone the database from master to standby" 
     command: docker exec -it -u postgres pg-dock -e PG_DOCK_FROM=n1 manage/repmgr_clone_standby.sh
     register: register_clone
     when:
@@ -153,7 +153,7 @@
     tags: pg
      
   - name: "Register standby database"
-    command: docker exec -it -u  postgres pg-dock repmgr standby register
+    command: docker exec -it -u postgres pg-dock repmgr standby register
     register: register_standby
     when:
          - not pgsql_cluster_configured
