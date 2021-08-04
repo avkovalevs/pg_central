@@ -1,6 +1,6 @@
 version: '2'
 services:
-  pg-0:
+  {{ ansible_hostname }}:
     image: docker.io/bitnami/postgresql-repmgr:11
     ports:
       - 5432
@@ -12,11 +12,11 @@ services:
       - POSTGRESQL_PASSWORD={{ pgpass }}
       - POSTGRESQL_DATABASE=testdb
       - REPMGR_PASSWORD={{ repmgrpass }}
-      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PRIMARY_HOST={{ master_hostname }}
       - REPMGR_PRIMARY_PORT=5432
-      - REPMGR_PARTNER_NODES=pg-0,pg-1:5432
-      - REPMGR_NODE_NAME=pg-0
-      - REPMGR_NODE_NETWORK_NAME=pg-0
+      - REPMGR_PARTNER_NODES={% for item in groups['db'] %}{{ hostvars[item].ansible_hostname }}{% if not loop.last %},{% endif %}{% endfor %}:5432
+      - REPMGR_NODE_NAME={{ ansible_hostname }}
+      - REPMGR_NODE_NETWORK_NAME={{ ansible_hostname }}
       - REPMGR_PORT_NUMBER=5432
 volumes:
   data0:
