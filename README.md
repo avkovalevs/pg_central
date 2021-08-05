@@ -111,10 +111,11 @@ Start the playbook inside the "pgdocker" directory.
 cd ../pgdocker
 ansible-playbook -v -i test master.yml --extra-vars "env_state=present" --vault-password-file=.ansible_vault_pass
 ~~~
+
 List of available tags: 
 -t common
 -t bpg
-----
+
 Useful commands for Docker cluster:
 
 - Check repmgr cluster status (bitnami).
