@@ -77,40 +77,49 @@ ssh-copy-id -i ~/.ssh/id_rsa.pub root@127.0.0.1
 cd ../ansible
 ansible-playbook -v -i test master.yml --extra-vars "env_state=present" -t common --vault-password-file=.ansible_vault_pass
 ~~~
-Ansible master will play only tasks which has tags common. 
+Ansible master will play only tasks which have the tag "common".  
+List of available tags: 
+-t common
+-t pg
+Parameter description:
 - -v: Verbose mode enabled
 - -i test: Show the inventory file using for playing
 - master.yml: The main file with tasks and roles
 - --extra-vars: Additional parameter like "env_state=present"
 - -t common: Use tag "common"
 - --vault-password-file: This file store the password used for encryption sensitive information like passwords, secrets and so on. This file usually added to .gitignore
-To encrypt file with credential use following command below:
+To encrypt file with credentials use the command below:
 ~~~
 ansible-vault encrypt ./group_vars/credentials --vault-password-file .ansible_vault_pass
 ~~~
-To check/edit credentials use the following command:
 
+To check/edit credentials use the following command:
 ~~~
 ansible-vault edit ./group_vars/credentials --vault-password-file .ansible_vault_pass
 ~~~
-This is usefull parameter if no need to play all the roles, all the tasks each times. 
-To run all tasks no use tag parameter at all.
+To run all the roles don't use tags at all.
 
+### Bitnami based software deployment using Ansible (docker cluster on separate VM)
 
-
-### Deployment PostgreSQL/Repmgr software deployment using Ansible (docker cluster)
-The steps for the Docker cluster deployment are similar to PostgreSQL on VM (1-4)
+The steps for the Docker cluster deployment are similar to the steps of PostgreSQL HA deployment on VM.
+Don't apply steps 1-3 if they are already done.
+4. Setup inventory and check variables (each time after provisioning).
 5. Run the playbook to deploy software stack (any times).  Start the playbook inside the "pgdocker" directory.
 ~~~
 cd ../pgdocker
 ansible-playbook -v -i test master.yml --extra-vars "env_state=present" --vault-password-file=.ansible_vault_pass
 ~~~
+List of available tags: 
+-t common
+-t bpg
+----
 Useful commands for Docker cluster:
 
 - Check repmgr cluster status (bitnami).
 ~~~
 docker exec -it root_pgnode-0_1 /opt/bitnami/scripts/postgresql-repmgr/entrypoint.sh repmgr -f /opt/bitnami/repmgr/conf/repmgr.conf cluster show
 ~~~
+
 - PSQL connection to the PostgreSQL:
 ~~~
 docker exec -it root_pgnode-0_1 psql -h pgnode-0 -U postgres 
