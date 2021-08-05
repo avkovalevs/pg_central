@@ -102,9 +102,11 @@ To run all the roles don't use tags at all.
 ### Bitnami based software deployment using Ansible (docker cluster on separate VM)
 
 The steps for the Docker cluster deployment are similar to the steps of PostgreSQL HA deployment on VM.
-Don't apply steps 1-3 if they are already done.
+Don't apply steps 1-3 if they are already done. 
+
 4. Setup inventory and check variables (each time after provisioning).
-5. Run the playbook to deploy software stack (any times).  Start the playbook inside the "pgdocker" directory.
+5. Run the playbook to deploy software stack (any times). 
+Start the playbook inside the "pgdocker" directory.
 ~~~
 cd ../pgdocker
 ansible-playbook -v -i test master.yml --extra-vars "env_state=present" --vault-password-file=.ansible_vault_pass
