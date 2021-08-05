@@ -43,9 +43,9 @@ terraform destroy
 terraform apply
 ~~~
 
-### Software deployment using Ansible
+### PostgreSQL/Repmgr software deployment using Ansible (VM cluster)
 These steps will cover installation and tuning steps for PG software, set up common steps for nodes, and so on.
-Before the installation needs to install ansible software locally on the same node as the terraform. This node will an ansible master.
+Before the installation needs to install ansible software locally on the same node as the terraform codebase. This node will an ansible master.
 Nodes created on previous steps are called managed nodes. 
 1. Install ansible software on master node (once). Use these commands below for Ubuntu machine only.
 ~~~
@@ -72,11 +72,12 @@ ssh root@use_public_ip_from_terraform_output_here
 ssh-copy-id -i ~/.ssh/id_rsa.pub root@127.0.0.1
 ~~~
 4. Setup inventory and check variables (each time after provisioning). For the inventory setup it is required to edit hosts file in the dev, test or prod catalogs depend on enviroment you will use.
-5. Run the playbook to deploy software stack (any times).  Start the playbokk inside the "ansible" directory.
+5. Run the playbook to deploy software stack (any times).  Start the playbook inside the "ansible" directory.
 ~~~
 cd ../ansible
 ansible-playbook -v -i test master.yml --extra-vars "env_state=present" -t common --vault-password-file=.ansible_vault_pass
 ~~~
+Ansible master will play only tasks which has tags common. 
 - -v: Verbose mode enabled
 - -i test: Show the inventory file using for playing
 - master.yml: The main file with tasks and roles
@@ -87,6 +88,30 @@ To encrypt file with credential use following command below:
 ~~~
 ansible-vault encrypt ./group_vars/credentials --vault-password-file .ansible_vault_pass
 ~~~
-Ansible master will play only tasks which has tags common. 
+To check/edit credentials use the following command:
+
+~~~
+ansible-vault edit ./group_vars/credentials --vault-password-file .ansible_vault_pass
+~~~
 This is usefull parameter if no need to play all the roles, all the tasks each times. 
 To run all tasks no use tag parameter at all.
+
+
+
+### Deployment PostgreSQL/Repmgr software deployment using Ansible (docker cluster)
+The steps for the Docker cluster deployment are similar to PostgreSQL on VM (1-4)
+5. Run the playbook to deploy software stack (any times).  Start the playbook inside the "pgdocker" directory.
+~~~
+cd ../pgdocker
+ansible-playbook -v -i test master.yml --extra-vars "env_state=present" --vault-password-file=.ansible_vault_pass
+~~~
+Useful commands for Docker cluster:
+
+- Check repmgr cluster status (bitnami).
+~~~
+docker exec -it root_pgnode-0_1 /opt/bitnami/scripts/postgresql-repmgr/entrypoint.sh repmgr -f /opt/bitnami/repmgr/conf/repmgr.conf cluster show
+~~~
+- PSQL connection to the PostgreSQL:
+~~~
+docker exec -it root_pgnode-0_1 psql -h pgnode-0 -U postgres 
+~~~

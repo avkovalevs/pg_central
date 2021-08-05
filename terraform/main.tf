@@ -75,7 +75,7 @@ resource "hcloud_firewall" "firewall_lab" {
    protocol  = "tcp"
    port      = "5432"
    source_ips = [
-      "65.21.0.0/16",
+      "0.0.0.0/0",
       "10.0.1.0/26"
    ]
   }
