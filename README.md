@@ -113,7 +113,7 @@ ansible-playbook -v -i test master.yml --extra-vars "env_state=present" --vault-
 ~~~
 
 List of available tags:  
--t common,
+-t common, 
 -t bpg
 
 Useful commands for Docker cluster:
