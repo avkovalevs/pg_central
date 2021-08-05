@@ -31,7 +31,7 @@ resource "hcloud_network_subnet" "private-network" {
 }
 
 resource "hcloud_server" "pg" {
-  count       = "2"
+  count       = "3"
   name        = "pgnode-${count.index}"
   server_type = "cx11"
   image       = "ubuntu-18.04"
@@ -46,14 +46,14 @@ resource "hcloud_server" "pg" {
 }
 
 resource "hcloud_volume" "pgdatavol0" {
-  count     = "2"
+  count     = "3"
   name      = "pgdata-${count.index}"
   size      = 10
   location    = "hel1"
 }
 
 resource "hcloud_volume_attachment" "main" {
-  count     = "2"
+  count     = "3"
   volume_id = "${hcloud_volume.pgdatavol0[count.index].id}"
   server_id = "${hcloud_server.pg[count.index].id}"
   automount = true
