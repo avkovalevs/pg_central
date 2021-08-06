@@ -39,3 +39,41 @@
     chdir: "/root"
   tags: bpg
 
+- name: "Create SSH keys for the root user and put it into this role's files directory"
+  shell: ssh-keygen -f "{{ role_path }}/files/postgres_user_id_rsa" -t rsa -N ''
+  args:
+    creates: "{{ role_path }}/files/postgres_user_id_rsa"
+  delegate_to: localhost
+  run_once: true
+  tags: bpg
+
+- name: "Make sure SSH directory for root user exists"
+  file:
+    path: "/root/.ssh"
+    state: directory
+    mode: 0700
+  tags: bpg
+
+- name: "Copy private SSH key for root user"
+  copy:
+    src: postgres_user_id_rsa
+    dest: "/root/.ssh/id_rsa"
+    mode: 0600
+  tags: bpg
+
+- name: "Copy public SSH key for root user"
+  copy:
+    src: postgres_user_id_rsa.pub
+    dest: "/root/.ssh/id_rsa.pub"
+    mode: 0644
+  tags: bpg
+
+- name: "Cross authorize this key among all Postgres servers"
+  lineinfile:
+    path: "/root/.ssh/authorized_keys"
+    create: yes
+    mode: 0600
+    line: "{{ lookup('file', 'postgres_user_id_rsa.pub') }}"
+    state: present
+  tags: bpg
+
