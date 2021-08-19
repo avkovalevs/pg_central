@@ -27,4 +27,6 @@
   - ./group_vars/credentials
   roles:
     - common
-    - postgres
+    - libvirt
+#    - postgres
+

@@ -1,0 +1,16 @@
+---
+# tasks file for libvirt
+- name: "Install  libbvirt-kvm packages"
+  apt:
+    name: "{{ packages }}"
+    force_apt_get: true
+    update_cache: yes
+  vars:
+    packages:
+    - qemu-kvm
+    - libvirt-daemon-system
+    - snap
+    - uvtool
+    - uvtool-libvirt
+  tags: kvm
+
