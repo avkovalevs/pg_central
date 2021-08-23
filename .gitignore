@@ -3,5 +3,5 @@
 *.tfstate.backup
 *.tfstate.lock.info
 .terraform/
-variables.tf
+*.tfvars
 .ansible_vault_pass
