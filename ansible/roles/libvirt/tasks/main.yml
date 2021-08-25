@@ -9,8 +9,19 @@
     packages:
     - qemu-kvm
     - libvirt-daemon-system
-    - snap
+    - libvirt-clients
+    - bridge-utils
     - uvtool
     - uvtool-libvirt
+  tags: kvm
+
+- name: "Add user libvirtadmin"
+  user:
+    name: "{{ libvirt_user }}"    
+    password: "{{ libvirt_pass | password_hash('sha512') }}"
+    shell: /bin/bash
+    groups: sudo,libvirt
+    append: yes
+    state: present
   tags: kvm
 

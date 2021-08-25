@@ -116,7 +116,7 @@ List of available tags:
 - -t common, 
 - -t bpg
 
-Useful commands for Docker cluster:
+### Useful commands for Docker cluster:
 
 - Check repmgr cluster status (bitnami).
 ~~~
@@ -132,3 +132,4 @@ Add count "3" at main.tf and rows at output.tf.
 Add to inventory file ./test/hosts values from the output "terraform apply" ip addresses. 
 Run the playbook (step 5).
 Check the repmgr cluster status (useful commands) from the PG node.
+

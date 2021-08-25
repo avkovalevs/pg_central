@@ -27,6 +27,12 @@
   - ./group_vars/credentials
   roles:
     - common
-    - libvirt
+#    - libvirt
 #    - postgres
 
+- name: "Tuning libvirt nodes"
+  hosts: kvm
+  vars_files: 
+  - ./group_vars/credentials
+  roles:
+    - libvirt

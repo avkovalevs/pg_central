@@ -13,5 +13,8 @@
 127.0.0.1
 
 [db]
-135.181.99.150 pgsql_cluster_master=true master_hostname=pgnode-0
-135.181.99.50
+95.216.186.161 pgsql_cluster_master=true master_hostname=pgnode-0
+95.216.191.12
+
+[kvm]
+65.21.229.54
