@@ -15,19 +15,29 @@ Other useful commands listed below:
 # --Check IP addresses used by VMs
 ~~~
 # virsh net-dhcp-leases default
+# arp -a
 ~~~
 # -- List of VMs
+~~~
 # virsh list --all
+~~~
 # -- Clone VM target -> source and create a new image file
+~~~
 # virt-clone --original ubuntu20 --auto-clone
+~~~
 # -- Remove network info to be unique except account avkovalevs and firewall-rules
+~~~
 # virt-sysprep -d ubunt20-clone --operations all,-user-account,-firewall-rules
-# -- Delete VM including image
+~~~
+# -- Delete VM including image, destroy option will stop VM
+~~~
 # virsh destroy testvm
 # virsh undefine --remove-all-storage testvm
+~~~
 # -- Start VM
+~~~
 # virsh start node1
-
+~~~
 
 License
 -------
