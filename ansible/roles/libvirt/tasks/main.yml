@@ -13,6 +13,16 @@
     - bridge-utils
     - uvtool
     - uvtool-libvirt
+    - dnsmasq
+    - ebtables
+  tags: kvm
+
+- sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
   tags: kvm
 
 - name: "Add user libvirtadmin"
@@ -23,5 +33,20 @@
     groups: sudo,libvirt
     append: yes
     state: present
+  tags: kvm
+
+- name: "Make sure the iso directory exists"
+  file:
+    path: "{{ iso_dir }}"
+    state: directory
+    mode: 0700
+  tags: kvm
+
+- name: "Download Ubuntu-20.04 image"
+  get_url:
+    url: "https://mirrors.mit.edu/ubuntu-releases/20.04.2/ubuntu-20.04.2-live-server-amd64.iso"
+    dest: "{{ iso_dir }}"
+    owner: libvirt-qemu
+    group: kvm
   tags: kvm
 
