@@ -7,6 +7,7 @@
     update_cache: yes
   vars:
     packages:
+    - nmap
     - qemu-kvm
     - libvirt-daemon-system
     - libvirt-clients
@@ -15,6 +16,8 @@
     - uvtool-libvirt
     - dnsmasq
     - ebtables
+    - cpu-checker
+    - libguestfs-tools
   tags: kvm
 
 - sysctl:

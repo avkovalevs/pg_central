@@ -1,31 +1,33 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+The role will install libvirt related packages, setup sysctl parameters, download images needed for building VMs.
+Other useful commands listed below:
+# --Create default network and list it
+~~~
+# virsh net-start default
+# virsh net-list
+~~~
+# -- Generate VM using cli
+~~~
+# virt-install -n ubuntu20 -r 2048 --os-variant=ubuntu20.04 --location http://us.archive.ubuntu.com/ubuntu/dists/focal/main/installer-amd64/  --disk /var/lib/libvirt/images/ubuntu20.img,size=10,device=disk,bus=virtio --graphics none -w bridge=virbr0,model=virtio --extra-args 'console=ttyS0,115200n8 serial' --force --debug
+~~~
+# --Check IP addresses used by VMs
+~~~
+# virsh net-dhcp-leases default
+~~~
+# -- List of VMs
+# virsh list --all
+# -- Clone VM target -> source and create a new image file
+# virt-clone --original ubuntu20 --auto-clone
+# -- Remove network info to be unique except account avkovalevs and firewall-rules
+# virt-sysprep -d ubunt20-clone --operations all,-user-account,-firewall-rules
+# -- Delete VM including image
+# virsh destroy testvm
+# virsh undefine --remove-all-storage testvm
+# -- Start VM
+# virsh start node1
 
-Requirements
-------------
-
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
-
-Role Variables
---------------
-
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
-
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
-
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
 
 License
 -------
