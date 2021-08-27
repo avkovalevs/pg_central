@@ -7,10 +7,12 @@
     update_cache: yes
   vars:
     packages:
+    - git
     - nmap
     - qemu-kvm
     - libvirt-daemon-system
     - libvirt-clients
+    - libnss-libvirt
     - bridge-utils
     - uvtool
     - uvtool-libvirt

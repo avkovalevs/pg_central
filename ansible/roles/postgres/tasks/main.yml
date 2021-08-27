@@ -45,7 +45,7 @@
 
 - name: "Add Ubuntu postgres repo"
   apt_repository:
-    repo: 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main'
+    repo: 'deb http://apt.postgresql.org/pub/repos/apt/ {{ reponame }}-pgdg main'
     filename: 'pgdg'
     state: present
   tags: pg
@@ -103,6 +103,14 @@
     - python-psycopg2
   tags: pg
      
+- name: "Make sure SSH directory for Postgres user exists"
+  file:
+    src: /usr/bin/python3
+    dest: /usr/bin/python
+    state: link
+  delegate_to: localhost
+  tags: pg
+
 - name: "Create SSH keys for the Postgres user and put it into this role's files directory"
   shell: ssh-keygen -f "{{role_path}}/files/postgres_user_id_rsa" -t rsa -N ''
   args:
