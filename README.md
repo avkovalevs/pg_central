@@ -49,8 +49,8 @@ Before the installation needs to install ansible software locally on the same no
 Nodes created on previous steps are called managed nodes. 
 1. Install ansible software on master node (once). Use these commands below for Ubuntu machine only.
 ~~~
-sudo apt-add-repository ppa:ansible/ansible
 sudo apt install software-properties-common -y
+sudo apt-add-repository ppa:ansible/ansible
 sudo apt update
 sudo apt install ansible -y
 For Ubuntu 18, needs to install 2 packages for PostgreSQL and network.
