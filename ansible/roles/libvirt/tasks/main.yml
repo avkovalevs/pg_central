@@ -47,11 +47,10 @@
     mode: 0700
   tags: kvm
 
-- name: "Download Ubuntu-20.04 image"
-  get_url:
-    url: "https://mirrors.mit.edu/ubuntu-releases/20.04.2/ubuntu-20.04.2-live-server-amd64.iso"
-    dest: "{{ iso_dir }}"
-    owner: libvirt-qemu
-    group: kvm
+- name: "The copy nsswitch.conf"
+  template:
+    src: "nsswitch.conf.j2"
+    dest: "/etc/nsswitch.conf"
+    mode: 0644
   tags: kvm
 

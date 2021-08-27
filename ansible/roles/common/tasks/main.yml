@@ -9,45 +9,7 @@
     state: present
   tags: common
 
-# You can specify multiple pvs separated by commas
-- name: Create the volume group for /dev/sdb.
-  lvg:
-    vg: "{{ vg }}"
-    pvs: /dev/sdb
-    state: present
-  tags: common
-
-- name: Create the logical volume in the volume group
-  lvol:
-    vg: "{{ vg }}"
-    lv: "{{ lv }}"
-    size: +100%FREE
-    resizefs: true
-    state: present
-  tags: common
-
-- name: Create FS for logical volume 
-  filesystem:
-    fstype: "{{ fs }}"
-    dev: "/dev/mapper/{{ vg }}-{{ lv }}"
-    force: no
-  tags: common
-
-- name: Create a directory for mount point.
-  file:
-    path: "{{ mount_point }}"
-    state: directory
-    mode: '0755'
-  tags: common
-
-- name: Mount filesystem to mount point
-  mount:
-    path: "{{ mount_point }}"
-    src: "/dev/mapper/{{ vg }}-{{ lv }}"
-    fstype: "{{ fs }}"
-    opts: rw,nosuid,noexec
-    state: mounted
-  tags: common
+#- include_tasks: storage.yml
 
 - name: "Install system packages"
   apt:
