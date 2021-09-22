@@ -1,4 +1,5 @@
-Steps to deploy k8s cluster on Hetzner:
+# Steps to deploy k8s cluster on Hetzner Cloud
+
 1. Install hetzner-kube command locally 
 Build hetzner-kube from source:
 ~~~
@@ -41,7 +42,7 @@ chmod u+x get_helm.sh
 ./get_helm.sh
 ~~~
 
-8. Install addons to cluster
+8. Install addons to cluster. 
 8.1 Check existing addon
 ~~~
 hetzner-kube cluster addon list
@@ -73,7 +74,7 @@ root@k8s-master-01:~# echo $REPMGR_PASSWORD
 nZ6UpNwZTX
 ~~~
 
-11. Connect to PG databases
+11. Connect to PG databases. 
 11.1
 To connect to your database via pgpool run the following command:
 
@@ -90,7 +91,8 @@ apt install telnet
 apt install postgresql-client-common
 apt install postgresql-client-12
 ~~~
-11.3 Connect to pods from k8s master node (pgpool and postgres)
+
+11.3 Connect to pods from k8s master node (pgpool and postgres). 
 ~~~
 psql -h 10.244.1.9 -p 5432 -U postgres -d postgres #primary node
 psql -h 10.244.1.8 -p 5432 -U postgres -d postgres #slave node
