@@ -3,13 +3,14 @@
 1. Install hetzner-kube command locally 
 Build hetzner-kube from source:
 ~~~
-sudo yum install golang
+sudo yum install golang # RHEL
+sudo apt-get install golang # Ubuntu
 git clone https://github.com/xetys/hetzner-kube.git
 cd hetzner-kube/
-go build -o hetzner-kube
+/usr/local/go/bin/go build -o hetzner-kube
 sudo mv hetzner-kube /usr/local/bin/hetzner-kube
 ~~~
-
+Go version must be at least 1.15
 2. Generate Hetzner API token key (if not exist)
 3. Add context and ssh public key for Hetzner using commands:
 
@@ -43,7 +44,7 @@ chmod u+x get_helm.sh
 ~~~
 
 8. Install addons to cluster. 
-8.1 Check existing addon
+8.1 Check an existing addon
 ~~~
 hetzner-kube cluster addon list
 ~~~
@@ -87,9 +88,7 @@ psql -h 127.0.0.1 -p 5432 -U postgres -d postgres
 
 11.2 Install postgresql-client packages on k8s master node for checking access to db:
 ~~~
-apt install telnet
-apt install postgresql-client-common
-apt install postgresql-client-12
+apt install telnet postgresql-client-common postgresql-client-12
 ~~~
 
 11.3 Connect to pods from k8s master node (pgpool and postgres). 
@@ -117,7 +116,7 @@ my-release-postgresql-ha-postgresql-1              1/1     Running   0          
 ~~~
 
 13. Optional step.
-In case of controller-manager and scheduler in Unhealthy status there is need to remove the string "- --port=0" in the following yaml-files:
+In case of controller-manager and scheduler in Unhealthy status there is need to remove the string "- --port=0" in the following yaml-files and restart kubelet:
 /etc/kubernetes/manifests/kube-scheduler.yaml
 /etc/kubernetes/manifests/kube-controller-manager.yaml
 See the block (spec->containers->command).
@@ -137,7 +136,49 @@ etcd-0               Healthy   {"health":"true"}
 ~~~
 
 14. Run tests on pgpool load balancing and failover:
+<<<<<<< HEAD
 15. To delete k8s cluster use the following command:
+=======
+14.1 Pgpool HA test
+Kill the pgpool pod using command below:
+~~~
+kubectl delete pod my-release-postgresql-ha-pgpool-56bc757cd4-k5f88
+~~~
+After 5-7 seconds you can see that pgpool pod will automatically started again.
+This means that application running in k8s will reconnected to pgpool quickly.
+Check the status pg nodes using command:
+~~~
+kubectl get pods -o wide
+~~~
+
+14.2 Generate  RW workload via pgpool
+Copy script generate_1min_insert_workload.sql to k8s master and run workload via pgpool.
+~~~
+psql -h 10.244.1.4 -p 5432 -U postgres -d test -f generate_1min_insert_workload.sql
+~~~
+
+Kill the PG master pod during the workload running.
+~~~
+kubectl delete pod my-release-postgresql-ha-postgresql-0;
+~~~
+After this command pod will be deleted (killed) and restared again. As you can see the session with workload will be freezed on 10-15 sec and continued. Check the number of rows in the table t_random using command:
+~~~
+select count(*) from t_random;
+~~~
+
+
+14.3 LB tests
+
+14.4 PG failover tests
+Kill the PG master node using command below:
+~~~
+kubectl delete pod my-release-postgresql-ha-postgresql-0
+~~~
+Killing the PG master pod will not promote the replica to master. Master will be restarted by Kubernetes before repmgd will do promote the replica.
+The restart PG master pod usually takes 10-15 seconds. In this case, failback operation will not be needed. If the PG master and replica are outside the Kubernetes cluster failover and failback operations take place.
+
+15. Run the following command to delete k8s cluster after using it:
+>>>>>>> 20c24a199c3b6b11d5e1422a5cc7a55c686397f9
 ~~~
 hetzner-kube cluster delete k8s
 ~~~
