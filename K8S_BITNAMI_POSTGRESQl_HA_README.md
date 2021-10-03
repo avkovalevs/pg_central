@@ -75,7 +75,7 @@ root@k8s-master-01:~# echo $REPMGR_PASSWORD
 nZ6UpNwZTX
 ~~~
 
-11. Connect to PG databases. 
+11. Connect to PG databases 
 11.1
 To connect to your database via pgpool run the following command:
 
@@ -91,7 +91,7 @@ psql -h 127.0.0.1 -p 5432 -U postgres -d postgres
 apt install telnet postgresql-client-common postgresql-client-12
 ~~~
 
-11.3 Connect to pods from k8s master node (pgpool and postgres). 
+11.3 Connect to pods from k8s master node (pgpool and postgres) 
 ~~~
 psql -h 10.244.1.9 -p 5432 -U postgres -d postgres #primary node
 psql -h 10.244.1.8 -p 5432 -U postgres -d postgres #slave node
@@ -104,7 +104,7 @@ node_id |                                      hostname                         
 
 ~~~
 The easy check on create database will show the replication and health of the nodes.
-The IP addresses you can see in the "kubectl describe pod <name_of_the_pod>" command.
+The IP addresses you can see in the "kubectl describe pod <name_of_the_pod> | grep IP" command.
 
 12. Check the postgres-ha cluster status:
 ~~~
@@ -115,7 +115,7 @@ my-release-postgresql-ha-postgresql-0              1/1     Running   0          
 my-release-postgresql-ha-postgresql-1              1/1     Running   0          6m9s
 ~~~
 
-13. Optional step.
+13. Optional step 
 In case of controller-manager and scheduler in Unhealthy status there is need to remove the string "- --port=0" in the following yaml-files and restart kubelet:
 /etc/kubernetes/manifests/kube-scheduler.yaml
 /etc/kubernetes/manifests/kube-controller-manager.yaml
@@ -135,23 +135,28 @@ controller-manager   Healthy   ok
 etcd-0               Healthy   {"health":"true"}   
 ~~~
 
-14 Run tests on pgpool load balancing and failover:
+14 Run tests on pgpool load balancing and failover operations:
 
 14.1 Pgpool HA test
 Kill the pgpool pod using command below:
 ~~~
-kubectl delete pod my-release-postgresql-ha-pgpool-56bc757cd4-k5f88
+kubectl delete pod my-release-postgresql-ha-pgpool-56bc757cd4-dcb4s
 ~~~
 After 5-7 seconds you can see that pgpool pod will automatically started again.
 This means that application running in k8s will reconnected to pgpool quickly.
 Check the status pg nodes using command:
 ~~~
 kubectl get pods -o wide
+NAME                                               READY   STATUS    RESTARTS   AGE   IP            NODE            NOMINATED NODE   READINESS GATES
+my-release-postgresql-ha-pgpool-56bc757cd4-dcb4s   1/1     Running   0          68m   10.244.1.4    k8s-worker-01   <none>           <none>
+my-release-postgresql-ha-postgresql-0              1/1     Running   0          21s   10.244.1.11   k8s-worker-01   <none>           <none>
+my-release-postgresql-ha-postgresql-1              1/1     Running   0          68m   10.244.1.6    k8s-worker-01   <none>           <none>
 ~~~
 
 14.2 Generate RW workload via pgpool
 Copy script generate_1min_insert_workload.sql to k8s master and run workload via pgpool.
 ~~~
+psql -h 10.244.1.4 -p 5432 -U postgres -d postgres -c "create database test;"
 psql -h 10.244.1.4 -p 5432 -U postgres -d test -f generate_1min_insert_workload.sql
 ~~~
 
@@ -163,7 +168,6 @@ After this command pod will be deleted (killed) and restared again. As you can s
 ~~~
 select count(*) from t_random;
 ~~~
-
 
 14.3 LB tests
 
