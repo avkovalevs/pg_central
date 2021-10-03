@@ -135,10 +135,8 @@ controller-manager   Healthy   ok
 etcd-0               Healthy   {"health":"true"}   
 ~~~
 
-14. Run tests on pgpool load balancing and failover:
-<<<<<<< HEAD
-15. To delete k8s cluster use the following command:
-=======
+14 Run tests on pgpool load balancing and failover:
+
 14.1 Pgpool HA test
 Kill the pgpool pod using command below:
 ~~~
@@ -151,7 +149,7 @@ Check the status pg nodes using command:
 kubectl get pods -o wide
 ~~~
 
-14.2 Generate  RW workload via pgpool
+14.2 Generate RW workload via pgpool
 Copy script generate_1min_insert_workload.sql to k8s master and run workload via pgpool.
 ~~~
 psql -h 10.244.1.4 -p 5432 -U postgres -d test -f generate_1min_insert_workload.sql
@@ -161,7 +159,7 @@ Kill the PG master pod during the workload running.
 ~~~
 kubectl delete pod my-release-postgresql-ha-postgresql-0;
 ~~~
-After this command pod will be deleted (killed) and restared again. As you can see the session with workload will be freezed on 10-15 sec and continued. Check the number of rows in the table t_random using command:
+After this command pod will be deleted (killed) and restared again. As you can see the session with workload generation will be freezed on 10-15 sec and continued. Check the number of rows in the table t_random using command:
 ~~~
 select count(*) from t_random;
 ~~~
@@ -178,7 +176,6 @@ Killing the PG master pod will not promote the replica to master. Master will be
 The restart PG master pod usually takes 10-15 seconds. In this case, failback operation will not be needed. If the PG master and replica are outside the Kubernetes cluster failover and failback operations take place.
 
 15. Run the following command to delete k8s cluster after using it:
->>>>>>> 20c24a199c3b6b11d5e1422a5cc7a55c686397f9
 ~~~
 hetzner-kube cluster delete k8s
 ~~~
