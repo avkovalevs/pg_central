@@ -97,6 +97,12 @@ apt install postgresql-client-12
 psql -h 10.244.1.9 -p 5432 -U postgres -d postgres #primary node
 psql -h 10.244.1.8 -p 5432 -U postgres -d postgres #slave node
 psql -h 10.244.1.7 -p 5432 -U postgres -d postgres #pgpool node
+postgres=# show pool_nodes;
+node_id |                                      hostname                                      | port | status | lb_weight |  role   | select_cnt | load_balance_node | replication_delay | replication_state | replication_sync_state | last_status_change  
+---------+------------------------------------------------------------------------------------+------+--------+-----------+---------+------------+-------------------+-------------------+-------------------+------------------------+---------------------
+ 0       | my-release-postgresql-ha-postgresql-0.my-release-postgresql-ha-postgresql-headless | 5432 | up     | 0.500000  | primary | 713        | false             | 0                 |                   |                        | 2021-09-22 19:30:21
+ 1       | my-release-postgresql-ha-postgresql-1.my-release-postgresql-ha-postgresql-headless | 5432 | up     | 0.500000  | standby | 688        | true              | 0                 |                   |                        | 2021-09-22 19:31:06
+
 ~~~
 The easy check on create database will show the replication and health of the nodes.
 The IP addresses you can see in the "kubectl describe pod <name_of_the_pod>" command.
@@ -131,4 +137,7 @@ etcd-0               Healthy   {"health":"true"}
 ~~~
 
 14. Run tests on pgpool load balancing and failover:
-
+15. To delete k8s cluster use the following command:
+~~~
+hetzner-kube cluster delete k8s
+~~~
