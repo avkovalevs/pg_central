@@ -164,10 +164,12 @@ Kill the PG master pod during the workload running.
 ~~~
 kubectl delete pod my-release-postgresql-ha-postgresql-0;
 ~~~
-After this command pod will be deleted (killed) and restared again. As you can see the session with workload generation will be freezed on 10-15 sec and continued. Check the number of rows in the table t_random using command:
+After this command the pod will be deleted (killed) and restared again. As you can see the session with workload generation will be freezed on 10-15 sec and be continued. Check the number of rows in the table t_random using command:
 ~~~
 select count(*) from t_random;
 ~~~
+Expected result:
+SELECT 5000000
 
 14.3 LB tests
 
@@ -176,8 +178,8 @@ Kill the PG master node using command below:
 ~~~
 kubectl delete pod my-release-postgresql-ha-postgresql-0
 ~~~
-Killing the PG master pod will not promote the replica to master. Master will be restarted by Kubernetes before repmgd will do promote the replica.
-The restart PG master pod usually takes 10-15 seconds. In this case, failback operation will not be needed. If the PG master and replica are outside the Kubernetes cluster failover and failback operations take place.
+Killing the PG master pod will not promote the replica to master. Master pod will be restarted by Kubernetes before repmgd will promote the replica pod to a new master.
+The restart process of the PG master pod usually takes 10-15 seconds. In this case, a failback operation will not be needed. If the PG master and replica are outside the Kubernetes cluster failover and failback operations are taking place.
 
 15. Run the following command to delete k8s cluster after using it:
 ~~~
