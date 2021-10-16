@@ -88,7 +88,7 @@ psql -h 127.0.0.1 -p 5432 -U postgres -d postgres
 
 11.2 Install postgresql-client packages on k8s master node for checking access to db:
 ~~~
-apt install telnet postgresql-client-common postgresql-client-12
+apt install telnet postgresql-client-common postgresql-client-12 postgresql-contrib
 ~~~
 
 11.3 Connect to pods from k8s master node (pgpool and postgres) 
@@ -172,6 +172,31 @@ Expected result:
 SELECT 5000000
 
 14.3 LB tests
+Create a simple database with 5000000 tuples using commands:
+~~~
+psql -h 10.244.1.7 -d postgres -U postgres -c "create database xample;"
+pgbench -h 10.244.1.7 -U postgres -i -s 50 xample
+~~~
+Run a lot of select queries (10k) in order to generate workload for database:
+~~~ 
+pgbench -h 10.244.1.7 -U postgres -c 10 -j 2 -S -t 10000 xample
+Password: 
+starting vacuum...end.
+transaction type: <builtin: TPC-B (sort of)>
+scaling factor: 50
+query mode: simple
+number of clients: 10
+number of threads: 2
+number of transactions per client: 10000
+number of transactions actually processed: 100000/100000
+latency average = 44.019 ms
+tps = 227.172466 (including connections establishing)
+tps = 227.184780 (excluding connections establishing)
+~~~
+
+Check the number of select_cnt in "show pool_nodes;" view.
+As a result, the LB mechanism has split workload between nodes.
+Moreover, the default value for lb_weight is 0.5. It means both nodes will get equal number of queries.
 
 14.4 PG failover tests
 Kill the PG master node using command below:
