@@ -93,6 +93,9 @@ psql -h 127.0.0.1 -p 5432 -U postgres -d postgres
 ~~~
 apt install telnet postgresql-client-common postgresql-client-12 postgresql-contrib
 ~~~
+The postgresql-contrib package contains the pgbench utility needed for testing steps.
+This package will install postgresql-server package as prerequisite and create a PG cluster which is not required.
+So, stop the cluster and delete the postgresql-server package.
 
 ### Connect to pods from k8s master node (pgpool and postgres) 
 ~~~
