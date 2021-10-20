@@ -96,9 +96,9 @@ apt install telnet postgresql-client-common postgresql-client-12 postgresql-cont
 
 ### Connect to pods from k8s master node (pgpool and postgres) 
 ~~~
-psql -h 10.244.1.9 -p 5432 -U postgres -d postgres #primary node
-psql -h 10.244.1.8 -p 5432 -U postgres -d postgres #slave node
-psql -h 10.244.1.7 -p 5432 -U postgres -d postgres #pgpool node
+psql -h 10.244.1.11 -p 5432 -U postgres -d postgres #primary node
+psql -h 10.244.1.6 -p 5432 -U postgres -d postgres #slave node
+psql -h 10.244.1.4 -p 5432 -U postgres -d postgres #pgpool node
 postgres=# show pool_nodes;
 node_id |                                      hostname                                      | port | status | lb_weight |  role   | select_cnt | load_balance_node | replication_delay | replication_state | replication_sync_state | last_status_change  
 ---------+------------------------------------------------------------------------------------+------+--------+-----------+---------+------------+-------------------+-------------------+-------------------+------------------------+---------------------
@@ -174,12 +174,12 @@ SELECT 5000000
 ### Load balancing tests
 Create the database "xample" with 5000000 tuples using commands:
 ~~~
-psql -h 10.244.1.7 -d postgres -U postgres -c "create database xample;"
-pgbench -h 10.244.1.7 -U postgres -i -s 50 xample
+psql -h 10.244.1.4 -d postgres -U postgres -c "create database xample;"
+pgbench -h 10.244.1.4 -U postgres -i -s 50 xample
 ~~~
 Run a lot of select queries (10k) in order to generate workload for database:
 ~~~ 
-pgbench -h 10.244.1.7 -U postgres -c 10 -j 2 -S -t 10000 xample
+pgbench -h 10.244.1.4 -U postgres -c 10 -j 2 -S -t 10000 xample
 Password: 
 starting vacuum...end.
 transaction type: <builtin: TPC-B (sort of)>
